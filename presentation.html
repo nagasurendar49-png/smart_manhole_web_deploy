@@ -1,0 +1,2363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT-Based Smart Manhole Detection System — Cinematic 3D Presentation</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: rgba(15, 23, 42, 0.85);
+      --accent-blue: #00e5ff;
+      --accent-cyan: #38bdf8;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(56, 189, 248, 0.25);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+    .cinema-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 1360px;
+      margin: 10px auto;
+      background: #000;
+      box-shadow: 0 25px 60px -15px rgba(0, 229, 255, 0.2), 0 0 40px rgba(0,0,0,0.8);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      aspect-ratio: 16 / 9;
+    }
+    canvas#stage {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: #05070c;
+    }
+    /* HUD Overlays */
+    .hud-header {
+      position: absolute;
+      top: 18px;
+      left: 24px;
+      right: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .project-badge {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      background: rgba(0, 229, 255, 0.12);
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      backdrop-filter: blur(8px);
+      width: fit-content;
+    }
+    .badge-tag .pulse-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--accent-blue);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-blue);
+      animation: blink 1.2s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.7); }
+    }
+    .project-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    }
+    .institution-tag {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+    .telemetry-pill {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      color: var(--accent-cyan);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    .telemetry-pill .gps {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Subtitle & Narration Bar */
+    .caption-box {
+      position: absolute;
+      bottom: 84px;
+      left: 5%;
+      right: 5%;
+      text-align: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .caption-inner {
+      display: inline-block;
+      max-width: 90%;
+      background: rgba(7, 10, 19, 0.88);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      padding: 12px 24px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(0, 229, 255, 0.15);
+      backdrop-filter: blur(12px);
+    }
+    .caption-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent-amber);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+    .caption-text {
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 500;
+      color: #ffffff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    }
+
+    /* Control Bar */
+    .controls-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: linear-gradient(to top, rgba(3, 5, 10, 0.98), rgba(3, 5, 10, 0.75) 80%, transparent);
+      padding: 10px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 8px;
+      z-index: 20;
+    }
+    .timeline-container {
+      position: relative;
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .timeline-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00e5ff, #3b82f6);
+      box-shadow: 0 0 10px #00e5ff;
+      border-radius: 4px;
+      transition: width 0.08s linear;
+    }
+    .timeline-markers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      display: flex;
+      justify-content: space-between;
+    }
+    .scene-tick {
+      width: 2px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .buttons-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .left-buttons, .right-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn {
+      background: rgba(15, 23, 42, 0.85);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: rgba(0, 229, 255, 0.2);
+      border-color: var(--accent-blue);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.35);
+    }
+    .btn-primary {
+      background: #0284c7;
+      border-color: #38bdf8;
+    }
+    .btn-primary:hover {
+      background: #0369a1;
+    }
+    .btn-active {
+      border-color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.25);
+      color: #6ee7b7;
+    }
+    .time-display {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      color: var(--accent-cyan);
+      letter-spacing: 1px;
+    }
+    .scene-pill {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 4px 10px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+    }
+
+    /* Scene Selection Drawer below presentation */
+    .scene-navigator {
+      max-width: 1360px;
+      width: 100%;
+      margin: 12px auto 30px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .scene-card {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .scene-card:hover {
+      background: rgba(30, 41, 59, 0.9);
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+    }
+    .scene-card.active {
+      background: rgba(0, 229, 255, 0.12);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.25);
+    }
+    .scene-card .sc-time {
+      font-size: 10px;
+      font-family: monospace;
+      color: var(--accent-amber);
+    }
+    .scene-card .sc-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .scene-card .sc-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Quick Info Modal/Drawer */
+    .info-footer {
+      max-width: 1360px;
+      width: 100%;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 0 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cinema-wrapper" id="cinemaContainer">
+    <canvas id="stage" width="1920" height="1080"></canvas>
+
+    <!-- Top HUD Overlay -->
+    <div class="hud-header">
+      <div class="project-badge">
+        <div class="badge-tag">
+          <span class="pulse-dot"></span>
+          <span>IoT Engineering Demonstration &bull; 1080p 60fps</span>
+        </div>
+        <div class="project-title" id="hudProjectTitle">IoT-Based SMART MANHOLE DETECTION SYSTEM</div>
+        <div class="institution-tag">Community Service Project &bull; Seshadri Rao Gudlavalleru Eng. College (Gudivada, AP)</div>
+      </div>
+      <div class="telemetry-pill">
+        <div id="hudTelemetry">CHAMBER: ONLINE &bull; SENSORS: ACTIVE</div>
+        <div class="gps">LAT: 16.4336°N | LON: 80.9944°E (GUDIVADA)</div>
+      </div>
+    </div>
+
+    <!-- Center/Bottom Cinematic Subtitle & Narration Display -->
+    <div class="caption-box">
+      <div class="caption-inner">
+        <div class="caption-title" id="captionTitle">SCENE 1: INTRODUCTION &bull; THE CITY AND ITS HIDDEN PROBLEM</div>
+        <div class="caption-text" id="captionText">
+          "Every day, thousands of litres of wastewater travel through the underground drainage networks beneath our cities. Although these systems are essential for urban life, what happens when they become blocked, overloaded, or unsafe?"
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Controls & Timeline -->
+    <div class="controls-bar">
+      <div class="timeline-container" id="timelineBar">
+        <div class="timeline-progress" id="timeProgress"></div>
+        <div class="timeline-markers" id="timelineMarkers"></div>
+      </div>
+      <div class="buttons-row">
+        <div class="left-buttons">
+          <button class="btn btn-primary" id="btnPlayPause">
+            <span id="playIcon">&#9658;</span> <span id="playText">Play Presentation</span>
+          </button>
+          <button class="btn" id="btnRestart">&#8634; Restart</button>
+          <span class="time-display" id="timeDisplay">00:00 / 04:00</span>
+          <span class="scene-pill" id="sceneIndicator">SCENE 1 of 10</span>
+        </div>
+        <div class="right-buttons">
+          <button class="btn" id="btnVoiceToggle">&#128266; Voiceover: ON</button>
+          <button class="btn" id="btnSfxToggle">&#127926; Audio SFX: ON</button>
+          <button class="btn" id="btnFullscreen">&#x26F6; Fullscreen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene Jump Grid Navigator -->
+  <div class="scene-navigator" id="sceneGrid">
+    <!-- Populated by JS -->
+  </div>
+
+  <div class="info-footer">
+    <div><strong>Primary Reference:</strong> Gudivada CSP Report 2026–2027 &bull; ECE Department &bull; Prof. T.S.R. Krishna Prasad</div>
+    <div><strong>Students:</strong> B. Susmitha, Ch. Bharath, B. Sravani, K. Naga Surendar, A. Prabhavathi</div>
+  </div>
+
+<script>
+/**
+ * CINEMATIC 3D ANIMATED PROJECT PRESENTATION ENGINE
+ * Project Title: IoT-Based SMART MANHOLE DETECTION SYSTEM
+ * Target Specs: 16:9 1080p 60FPS procedural canvas renderer + Web Audio SFX + Voiceover synthesis
+ */
+
+// Scene Definitions strictly following the 10-Scene Storyboard
+const SCENES = [
+  {
+    id: 1,
+    title: "SCENE 1: THE CITY AND ITS HIDDEN PROBLEM",
+    start: 0,
+    end: 20,
+    heading: "THE HIDDEN PROBLEM BENEATH OUR STREETS",
+    subheading: "Subterranean infrastructure beneath modern urban layouts",
+    narration: "Every day, thousands of litres of wastewater travel through the underground drainage networks beneath our cities. Although these systems are essential for urban life, what happens when they become blocked, overloaded, or unsafe?"
+  },
+  {
+    id: 2,
+    title: "SCENE 2: EXPLAIN THE ACTUAL PROBLEM",
+    start: 20,
+    end: 50,
+    heading: "PIPELINE BLOCKAGE & SEWAGE OVERFLOW",
+    subheading: "Debris Accumulation &rarr; Rising Liquid Levels &rarr; Road Surface Contamination",
+    narration: "When drainage pipelines become blocked or wastewater levels rise beyond their safe limits, sewage may overflow onto streets. In many conventional systems, these problems are identified only after visible signs appear or someone reports them."
+  },
+  {
+    id: 3,
+    title: "SCENE 3: CONSEQUENCES TO SOCIETY",
+    start: 50,
+    end: 70,
+    heading: "A PROBLEM THAT NEEDS EARLY DETECTION — NOT JUST REACTIVE MAINTENANCE",
+    subheading: "Public Health Risk &bull; Environmental Contamination &bull; Waterlogging &bull; Toxic Gas Exposure",
+    narration: "Manhole overflow is not just a drainage problem. It can create serious sanitation hazards, increase exposure to contaminated wastewater, disrupt public movement, and expose sanitation workers to dangerous gases. Traditional manual inspections can delay the identification of these risks."
+  },
+  {
+    id: 4,
+    title: "SCENE 4: INTRODUCING OUR SMART SOLUTION",
+    start: 70,
+    end: 90,
+    heading: "IoT-BASED SMART MANHOLE DETECTION SYSTEM",
+    subheading: "Automated Continuous Subterranean Chamber Monitoring Architecture",
+    narration: "To address these challenges, we propose an IoT-based Smart Manhole Detection System that continuously monitors critical conditions inside drainage chambers and communicates abnormal conditions to municipal authorities."
+  },
+  {
+    id: 5,
+    title: "SCENE 5: INDIVIDUAL SENSOR DEMONSTRATIONS",
+    start: 90,
+    end: 145,
+    heading: "MULTI-PARAMETRIC UNDERGROUND SENSOR INSTRUMENTATION",
+    subheading: "5A: Ultrasonic Level Monitoring &bull; 5B: Gas Detection &bull; 5C: Environmental Monitoring",
+    narration: "The ultrasonic liquid-level sensor measures the distance to the wastewater surface, detecting abnormal liquid-level rise and overflow risk. The gas detection unit monitors hazardous gas accumulation such as methane and hydrogen sulfide, while environmental and pressure sensors continuously track internal chamber conditions."
+  },
+  {
+    id: 6,
+    title: "SCENE 6: ELECTRONIC CONTROL & DATA PROCESSING",
+    start: 145,
+    end: 165,
+    heading: "MICROCONTROLLER PROCESSING & 3D EXPLODED ARCHITECTURE",
+    subheading: "Automated Data Ingestion &bull; Threshold Validation &bull; Telemetry Assembly",
+    narration: "All the sensor readings are collected and processed by the electronic control unit. When abnormal conditions are identified, the system generates a warning and initiates wireless communication."
+  },
+  {
+    id: 7,
+    title: "SCENE 7: WIRELESS COMMUNICATION TO MUNICIPAL OFFICE",
+    start: 165,
+    end: 185,
+    heading: "SUBTERRANEAN RF TRANSMISSION & MUNICIPAL NETWORK",
+    subheading: "Wireless Telemetry &bull; Subsurface-to-Surface Propagation &bull; Central Control Room GIS Map",
+    narration: "Using wireless communication, the monitoring system transmits important sensor information to the municipal monitoring interface, allowing authorities to identify the affected location and respond more efficiently."
+  },
+  {
+    id: 8,
+    title: "SCENE 8: AUTOMATED ALERT & MUNICIPAL RESPONSE",
+    start: 185,
+    end: 205,
+    heading: "CRITICAL ALERT DISPATCH & TARGETED MAINTENANCE",
+    subheading: "Real-time Notification &bull; Rapid Crew Deployment &bull; De-silting & Level Normalization",
+    narration: "Instead of waiting for overflow complaints, municipal authorities receive timely warnings about abnormal conditions and can arrange targeted inspection and maintenance."
+  },
+  {
+    id: 9,
+    title: "SCENE 9: BEFORE AND AFTER COMPARISON",
+    start: 205,
+    end: 220,
+    heading: "CONVENTIONAL REACTIVE vs. IoT-DRIVEN PROACTIVE",
+    subheading: "From Delayed Manual Checks to Automated 24/7 Early-Warning Protection",
+    narration: "By introducing intelligent monitoring and timely alerts, the Smart Manhole Detection System aims to support safer sanitation practices, improve municipal maintenance coordination, and reduce the risks associated with unexpected drainage failures."
+  },
+  {
+    id: 10,
+    title: "SCENE 10: FINAL IMPACT AND VISION",
+    start: 220,
+    end: 240,
+    heading: "SMARTER DRAINAGE. SAFER COMMUNITIES. CLEANER CITIES.",
+    subheading: "Community Service Project 2026–2027 &bull; ECE Dept &bull; SR Gudlavalleru Eng. College",
+    narration: "A comprehensive smart municipal monitoring network transforms urban sanitation into a data-driven, proactive civic utility—ensuring clean roads, worker safety, and resilient infrastructure."
+  }
+];
+
+const TOTAL_DURATION = 240; // 4 minutes exactly
+let currentTime = 0;
+let isPlaying = false;
+let voiceoverEnabled = true;
+let sfxEnabled = true;
+let animFrameId = null;
+let lastTimestamp = performance.now();
+
+// Canvas & Context Setup
+const canvas = document.getElementById('stage');
+const ctx = canvas.getContext('2d');
+
+// Web Audio API Synthesizer for Cinematic Sound FX
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioContext();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+// Procedural Audio Cues
+function playPingSound() {
+  if (!sfxEnabled || !audioCtx) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.28);
+    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.28);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+  } catch (e) {}
+}
+
+function playWarningAlarm() {
+  if (!sfxEnabled || !audioCtx) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(660, audioCtx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.26);
+  } catch(e) {}
+}
+
+function playDataTelemetryChirp() {
+  if (!sfxEnabled || !audioCtx) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(2200, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(3400, audioCtx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.09);
+  } catch(e) {}
+}
+
+// Speech Synthesis Engine for Narration
+let currentSpokenScene = -1;
+function speakNarration(text, sceneId) {
+  if (!voiceoverEnabled || !('speechSynthesis' in window)) return;
+  if (currentSpokenScene === sceneId) return;
+  window.speechSynthesis.cancel(); // Stop prior narration
+  currentSpokenScene = sceneId;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.98;
+  utterance.pitch = 1.0;
+  
+  // Prefer Indian-English / English Voice if installed
+  const voices = window.speechSynthesis.getVoices();
+  const enVoice = voices.find(v => v.lang.includes('en-IN') || v.name.includes('India')) ||
+                   voices.find(v => v.lang.includes('en-GB')) ||
+                   voices.find(v => v.lang.startsWith('en'));
+  if (enVoice) utterance.voice = enVoice;
+  window.speechSynthesis.speak(utterance);
+}
+
+// Particle System for Water, Gas, RF Signals
+const particles = [];
+for (let i = 0; i < 90; i++) {
+  particles.push({
+    x: Math.random() * 1920,
+    y: Math.random() * 1080,
+    vx: (Math.random() - 0.5) * 1.5,
+    vy: Math.random() * 2 + 0.8,
+    size: Math.random() * 3 + 1,
+    alpha: Math.random() * 0.7 + 0.3,
+    type: 'rain'
+  });
+}
+const gasParticles = [];
+for (let i = 0; i < 60; i++) {
+  gasParticles.push({
+    x: 960 + (Math.random() - 0.5) * 200,
+    y: 700 + Math.random() * 150,
+    vx: (Math.random() - 0.5) * 1.8,
+    vy: -(Math.random() * 1.4 + 0.5),
+    radius: Math.random() * 18 + 8,
+    life: Math.random(),
+    gasType: Math.random() > 0.5 ? 'CH4' : 'H2S'
+  });
+}
+
+// Render Engine: Scene by Scene
+function renderScene(time) {
+  ctx.clearRect(0, 0, 1920, 1080);
+
+  // Background Ambient
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 1080);
+  bgGrad.addColorStop(0, '#040711');
+  bgGrad.addColorStop(0.6, '#080d1a');
+  bgGrad.addColorStop(1, '#020408');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1920, 1080);
+
+  const activeScene = SCENES.find(s => time >= s.start && time < s.end) || SCENES[SCENES.length - 1];
+  const sceneProgress = (time - activeScene.start) / (activeScene.end - activeScene.start);
+
+  // Update UI Elements
+  updateHUD(activeScene, time);
+
+  // Trigger narration speech when entering a new scene
+  if (isPlaying && activeScene.id !== currentSpokenScene) {
+    speakNarration(activeScene.narration, activeScene.id);
+  }
+
+  // Draw Specific Scene Visuals
+  switch(activeScene.id) {
+    case 1: drawScene1(sceneProgress, time); break;
+    case 2: drawScene2(sceneProgress, time); break;
+    case 3: drawScene3(sceneProgress, time); break;
+    case 4: drawScene4(sceneProgress, time); break;
+    case 5: drawScene5(sceneProgress, time); break;
+    case 6: drawScene6(sceneProgress, time); break;
+    case 7: drawScene7(sceneProgress, time); break;
+    case 8: drawScene8(sceneProgress, time); break;
+    case 9: drawScene9(sceneProgress, time); break;
+    case 10: drawScene10(sceneProgress, time); break;
+  }
+
+  // Draw Technical Cinematic Grid & Vignette
+  drawCinematicOverlays(activeScene, time);
+}
+
+// SCENE 1: City & Underground Cutaway
+function drawScene1(p, t) {
+  // Aerial perspective of town transitioning to subterranean cross-section
+  const cutawayDepth = Math.min(1, Math.max(0, (p - 0.4) * 2.2)); // Slices ground open after 40%
+
+  // Draw Skyline & Street
+  ctx.save();
+  // Sky
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, 480);
+  skyGrad.addColorStop(0, '#0c1b33');
+  skyGrad.addColorStop(1, '#233857');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, 1920, 480);
+
+  // Buildings in background (Gudivada Townscape)
+  ctx.fillStyle = '#111e33';
+  for (let i = 0; i < 16; i++) {
+    const h = 140 + Math.sin(i * 1.8) * 80;
+    const w = 110;
+    ctx.fillRect(i * 125, 480 - h, w, h);
+    // Windows
+    ctx.fillStyle = '#fef08a22';
+    for (let wy = 480 - h + 15; wy < 460; wy += 25) {
+      for (let wx = i * 125 + 15; wx < i * 125 + w - 15; wx += 20) {
+        if ((i + wy + wx) % 3 === 0) ctx.fillRect(wx, wy, 8, 12);
+      }
+    }
+    ctx.fillStyle = '#111e33';
+  }
+
+  // Road Surface (Perspective Asphalt)
+  const roadGrad = ctx.createLinearGradient(0, 480, 0, 680);
+  roadGrad.addColorStop(0, '#222831');
+  roadGrad.addColorStop(1, '#181d24');
+  ctx.fillStyle = roadGrad;
+  ctx.fillRect(0, 480, 1920, 200);
+
+  // Road markings
+  ctx.strokeStyle = '#e2e8f0';
+  ctx.lineWidth = 4;
+  ctx.setLineDash([40, 30]);
+  ctx.beginPath();
+  ctx.moveTo(0, 580);
+  ctx.lineTo(1920, 580);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Vehicles & Rain
+  drawMovingVehicles(t);
+  drawRain(t);
+
+  // Transition: Slicing the ground open (Cutaway)
+  if (cutawayDepth > 0) {
+    ctx.save();
+    const cutY = 680 - cutawayDepth * 80;
+    ctx.fillStyle = '#0a0d14';
+    ctx.fillRect(0, cutY, 1920, 1080 - cutY);
+
+    // Underground soil strata
+    ctx.strokeStyle = '#2d3748';
+    ctx.lineWidth = 2;
+    for (let sy = cutY + 20; sy < 1080; sy += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, sy + Math.sin(sy * 0.1 + t) * 6);
+      ctx.lineTo(1920, sy + Math.sin(sy * 0.1 + t) * 6);
+      ctx.stroke();
+    }
+
+    // Subterranean Drainage Conduit & Manhole Shaft
+    drawUndergroundManholeCutaway(960, 840, 280, 340, 0.25, false);
+
+    // Dynamic Cutaway Laser Scan Line
+    ctx.strokeStyle = '#00e5ff';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#00e5ff';
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.moveTo(0, cutY);
+    ctx.lineTo(1920, cutY);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Dramatic cinematic camera push text
+  drawHeroCallout("THE HIDDEN PROBLEM BENEATH OUR STREETS", 
+    "Subterranean wastewater networks operate out of sight — until disaster strikes.", 960, 280, 1);
+  ctx.restore();
+}
+
+// SCENE 2: Pipeline Blockage & Sewage Overflow
+function drawScene2(p, t) {
+  // Shows continuous blockage build-up -> liquid level rising -> spilling onto street
+  ctx.save();
+  // Underground view with street cutaway
+  drawUndergroundCutawayBase();
+
+  const liquidRatio = 0.2 + p * 0.85; // rises from 20% to over 100% (overflow)
+  const isOverflowing = liquidRatio >= 0.95;
+
+  // Draw Chamber & Pipe with Debris
+  drawUndergroundManholeCutaway(960, 720, 360, 480, Math.min(1.05, liquidRatio), true, p);
+
+  // If overflowing, draw dirty sewage spilling onto the road surface
+  if (isOverflowing) {
+    const spillExtent = (liquidRatio - 0.95) * 10 * 300;
+    ctx.fillStyle = 'rgba(74, 52, 33, 0.92)';
+    ctx.beginPath();
+    ctx.ellipse(960, 440, 180 + spillExtent, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Floating debris particles on street
+    ctx.fillStyle = '#1e293b';
+    for (let d = 0; d < 8; d++) {
+      ctx.fillRect(960 - 140 + d * 35, 436 + (d % 3) * 3, 14, 6);
+    }
+
+    // Street splash ripples
+    ctx.strokeStyle = '#a16207';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(960, 440, 60 + (t * 40) % 120, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Pedestrians dodging contaminated water
+    drawPedestriansEvading(960 + 320, 410);
+    drawPedestriansEvading(960 - 360, 410);
+  }
+
+  // Animated Technical Keywords Box
+  const keywords = [
+    { text: "PIPELINE BLOCKAGE", active: p > 0.15 },
+    { text: "RISING SEWAGE LEVELS", active: p > 0.35 },
+    { text: "MANHOLE OVERFLOW", active: p > 0.65 },
+    { text: "DELAYED MANUAL DETECTION", active: p > 0.85 }
+  ];
+
+  let ky = 160;
+  keywords.forEach(kw => {
+    ctx.fillStyle = kw.active ? 'rgba(239, 68, 68, 0.2)' : 'rgba(15, 23, 42, 0.6)';
+    ctx.strokeStyle = kw.active ? '#ef4444' : 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(120, ky, 340, 42);
+    ctx.strokeRect(120, ky, 340, 42);
+
+    ctx.fillStyle = kw.active ? '#fca5a5' : '#64748b';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText(kw.text, 140, ky + 26);
+    if (kw.active) {
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(430, ky + 21, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ky += 52;
+  });
+
+  drawHeroCallout("UNNOTICED ACCUMULATION TO CATASTROPHIC OVERFLOW", 
+    "Sewer lines choke silently until contaminated sludge spills onto public avenues.", 960, 110, 1);
+
+  ctx.restore();
+}
+
+// SCENE 3: Consequences to Society (4-Quadrant Split Visualization)
+function drawScene3(p, t) {
+  ctx.save();
+  // 4 Quadrants
+  const cards = [
+    { title: "1. PUBLIC HEALTH HAZARD", desc: "Contaminated wastewater pathogens spreading across roads; high disease risk", color: "#ef4444", icon: "☣" },
+    { title: "2. ENVIRONMENTAL IMPACT", desc: "Untreated toxic runoff entering freshwater canals and regional soils", color: "#f59e0b", icon: "🌱" },
+    { title: "3. CIVIC INFRASTRUCTURE", desc: "Severe street waterlogging, vehicular traffic blockage, and pedestrian crisis", color: "#38bdf8", icon: "🚗" },
+    { title: "4. SANITATION WORKER RISKS", desc: "Exposure to toxic CH4 (Methane) and lethal H2S (Hydrogen Sulfide) gases", color: "#a855f7", icon: "⚠️" }
+  ];
+
+  const positions = [
+    { x: 140, y: 150, w: 780, h: 360 },
+    { x: 1000, y: 150, w: 780, h: 360 },
+    { x: 140, y: 550, w: 780, h: 360 },
+    { x: 1000, y: 550, w: 780, h: 360 }
+  ];
+
+  cards.forEach((c, idx) => {
+    const pos = positions[idx];
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.strokeStyle = c.color;
+    ctx.lineWidth = 2;
+    ctx.shadowColor = c.color;
+    ctx.shadowBlur = 10;
+    roundRect(ctx, pos.x, pos.y, pos.w, pos.h, 12, true, true);
+    ctx.shadowBlur = 0;
+
+    // Header Tag
+    ctx.fillStyle = c.color;
+    ctx.font = 'bold 20px -apple-system, sans-serif';
+    ctx.fillText(`${c.icon}  ${c.title}`, pos.x + 28, pos.y + 46);
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '15px -apple-system, sans-serif';
+    ctx.fillText(c.desc, pos.x + 28, pos.y + 80);
+
+    // Graphic inside each quadrant
+    ctx.save();
+    ctx.translate(pos.x + pos.w / 2, pos.y + pos.h / 2 + 40);
+    if (idx === 0) drawMicrobeSimulation(t);
+    else if (idx === 1) drawPollutionFlow(t);
+    else if (idx === 2) drawWaterloggedTraffic(t);
+    else if (idx === 3) drawToxicGasClouds(t);
+    ctx.restore();
+  });
+
+  // Center Statement Badge
+  ctx.fillStyle = 'rgba(7, 10, 19, 0.95)';
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 2;
+  roundRect(ctx, 420, 930, 1080, 54, 8, true, true);
+  ctx.fillStyle = '#00e5ff';
+  ctx.font = 'bold 16px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText("A PROBLEM THAT NEEDS EARLY DETECTION — NOT JUST REACTIVE MAINTENANCE", 960, 963);
+  ctx.textAlign = 'left';
+
+  ctx.restore();
+}
+
+// SCENE 4: Introducing Our Smart Solution
+function drawScene4(p, t) {
+  ctx.save();
+  // Cinematic freeze-frame and cybernetic holographic transform
+  drawUndergroundCutawayBase();
+
+  // Scanline sweep
+  const scanY = 300 + (t * 300) % 650;
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.7)';
+  ctx.lineWidth = 3;
+  ctx.shadowColor = '#00e5ff';
+  ctx.shadowBlur = 20;
+  ctx.beginPath();
+  ctx.moveTo(200, scanY);
+  ctx.lineTo(1720, scanY);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Monitored High-Tech Chamber
+  drawSmartManholeChamber(960, 680, 420, 520, 0.35, true);
+
+  // Architecture Callouts radiating from system
+  const callouts = [
+    { name: "ULTRASONIC LEVEL SENSOR", desc: "Non-contact echo depth telemetry", x: 620, y: 440, tx: 910, ty: 470 },
+    { name: "HAZARDOUS GAS DETECTION", desc: "Methane (CH4) & H2S semiconductor unit", x: 1300, y: 470, tx: 1010, ty: 510 },
+    { name: "ENVIRONMENTAL & PRESSURE", desc: "Chamber temp, humidity & barometric bar", x: 1320, y: 620, tx: 1010, ty: 560 },
+    { name: "MICROCONTROLLER PROCESSING", desc: "Automated analysis & edge logic", x: 580, y: 620, tx: 930, ty: 540 },
+    { name: "WIRELESS TRANSCEIVER", desc: "Subterranean-to-surface RF telemetry", x: 610, y: 780, tx: 940, ty: 460 },
+    { name: "MUNICIPAL CLOUD PORTAL", desc: "Centralized rapid-dispatch GIS console", x: 1310, y: 780, tx: 990, ty: 460 }
+  ];
+
+  callouts.forEach(c => {
+    // Laser leader line
+    ctx.strokeStyle = '#00e5ff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(c.tx, c.ty);
+    ctx.lineTo(c.x + 80, c.y + 20);
+    ctx.stroke();
+
+    ctx.fillStyle = '#00e5ff';
+    ctx.beginPath();
+    ctx.arc(c.tx, c.ty, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Box
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+    roundRect(ctx, c.x - 30, c.y, 240, 50, 6, true, true);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText(c.name, c.x - 18, c.y + 22);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.fillText(c.desc, c.x - 18, c.y + 38);
+  });
+
+  drawHeroCallout("IoT-BASED SMART MANHOLE DETECTION SYSTEM", 
+    "Continuous automated monitoring of subterranean drainage chambers", 960, 110, 1);
+
+  ctx.restore();
+}
+
+// SCENE 5: Individual Sensor Demonstrations (HERO SCENE)
+function drawScene5(p, t) {
+  ctx.save();
+  // Divide Scene 5 into 3 smooth sub-phases
+  // 0.0 - 0.35: SENSOR 1 (Ultrasonic Liquid Level)
+  // 0.35 - 0.70: SENSOR 2 (Gas Detection CH4 & H2S)
+  // 0.70 - 1.00: SENSOR 3 (Environmental & Pressure)
+
+  if (p < 0.35) {
+    drawSensor1Ultrasonic(p / 0.35, t);
+  } else if (p < 0.70) {
+    drawSensor2Gas((p - 0.35) / 0.35, t);
+  } else {
+    drawSensor3Environmental((p - 0.70) / 0.30, t);
+  }
+
+  ctx.restore();
+}
+
+// SENSOR 1 Sub-animation: Ultrasonic Level Monitoring
+function drawSensor1Ultrasonic(sp, t) {
+  // Chamber cross section with huge close up on Ultrasonic Transducer
+  ctx.fillStyle = '#080d1a';
+  ctx.fillRect(0, 0, 1920, 1080);
+
+  // Left side: 3D-styled Ultrasonic sensor cutaway & wave emission
+  const sensorX = 640;
+  const sensorY = 220;
+  const waterY = 780 - sp * 240; // Sewage level rising!
+  const distCm = Math.round(180 - sp * 145);
+  const isAlarm = distCm < 50;
+
+  if (isAlarm && Math.floor(t * 4) % 2 === 0) {
+    playWarningAlarm();
+  }
+
+  // Draw 3D Transducer Unit (Dual Horn Transmitter / Receiver)
+  ctx.fillStyle = '#334155';
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 3;
+  roundRect(ctx, sensorX - 120, sensorY - 80, 240, 90, 12, true, true);
+
+  // Horns
+  ctx.fillStyle = '#0f172a';
+  ctx.beginPath();
+  ctx.arc(sensorX - 50, sensorY + 15, 36, 0, Math.PI * 2);
+  ctx.arc(sensorX + 50, sensorY + 15, 36, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Ultrasonic Pulsing Wavefronts (Cyan downward arcs)
+  const pulsePhase = (t * 3) % 1;
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 3;
+  ctx.shadowColor = '#00e5ff';
+  ctx.shadowBlur = 10;
+  for (let r = 50; r < (waterY - sensorY); r += 60) {
+    const waveY = sensorY + 20 + ((r + pulsePhase * 60) % (waterY - sensorY));
+    const spread = (waveY - sensorY) * 0.45;
+    ctx.beginPath();
+    ctx.arc(sensorX, waveY, spread, Math.PI * 0.25, Math.PI * 0.75, false);
+    ctx.stroke();
+  }
+
+  // Returning Echo Wavefronts (Amber upward arcs)
+  ctx.strokeStyle = '#f59e0b';
+  ctx.shadowColor = '#f59e0b';
+  for (let er = waterY - 30; er > sensorY + 40; er -= 60) {
+    const echoSpread = (waterY - er) * 0.35;
+    ctx.beginPath();
+    ctx.arc(sensorX, er, echoSpread, Math.PI * 1.25, Math.PI * 1.75, false);
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+
+  // Wastewater surface
+  const waterGrad = ctx.createLinearGradient(0, waterY, 0, 1080);
+  waterGrad.addColorStop(0, '#543b23');
+  waterGrad.addColorStop(1, '#2c1e11');
+  ctx.fillStyle = waterGrad;
+  ctx.fillRect(200, waterY, 880, 1080 - waterY);
+
+  // Sludge surface wave motion
+  ctx.strokeStyle = '#854d0e';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  for (let wx = 200; wx <= 1080; wx += 20) {
+    const wy = waterY + Math.sin(wx * 0.05 + t * 4) * 5;
+    if (wx === 200) ctx.moveTo(wx, wy);
+    else ctx.lineTo(wx, wy);
+  }
+  ctx.stroke();
+
+  // Dynamic Dimension Line & Distance HUD
+  ctx.strokeStyle = isAlarm ? '#ef4444' : '#00e5ff';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath();
+  ctx.moveTo(sensorX + 220, sensorY + 20);
+  ctx.lineTo(sensorX + 220, waterY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Distance Callout Pill
+  ctx.fillStyle = isAlarm ? 'rgba(239, 68, 68, 0.9)' : 'rgba(15, 23, 42, 0.9)';
+  ctx.strokeStyle = isAlarm ? '#ef4444' : '#00e5ff';
+  roundRect(ctx, sensorX + 160, (sensorY + waterY) / 2 - 24, 180, 48, 8, true, true);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 16px monospace';
+  ctx.fillText(`DIST: ${distCm} cm`, sensorX + 180, (sensorY + waterY) / 2 + 6);
+
+  // Right Side: Technical Specs & Explanation Panel
+  const panelX = 1240;
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+  ctx.strokeStyle = isAlarm ? '#ef4444' : 'rgba(56, 189, 248, 0.4)';
+  ctx.lineWidth = 2;
+  roundRect(ctx, panelX, 160, 560, 760, 14, true, true);
+
+  // Title
+  ctx.fillStyle = '#00e5ff';
+  ctx.font = 'bold 22px monospace';
+  ctx.fillText("SENSOR 1: ULTRASONIC LEVEL SENSOR", panelX + 30, 215);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '14px -apple-system, sans-serif';
+  ctx.fillText("Time-of-Flight (ToF) Acoustic Distance Measurement", panelX + 30, 245);
+
+  // Formula & Graphic
+  ctx.fillStyle = 'rgba(2, 6, 23, 0.8)';
+  roundRect(ctx, panelX + 30, 275, 500, 80, 8, true, false);
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = '16px monospace';
+  ctx.fillText("Distance (d) = (Speed of Sound × Time) / 2", panelX + 50, 310);
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = '13px monospace';
+  ctx.fillText("Real-time Chamber Sludge / Water Proximity Tracking", panelX + 50, 335);
+
+  // Bullet Points matching strictly prompt requirements
+  const bullets = [
+    { title: "Measures the distance to the wastewater surface", desc: "Monitors sludge baseline continuously without physical liquid immersion" },
+    { title: "Detects abnormal liquid-level rise", desc: "Instantly registers sudden inflow caused by pipeline blockage or heavy rain" },
+    { title: "Early Overflow Risk Detection", desc: "Configurable alert threshold triggers warning before sewage reaches road level" }
+  ];
+
+  let by = 390;
+  bullets.forEach(b => {
+    ctx.fillStyle = '#00e5ff';
+    ctx.beginPath();
+    ctx.arc(panelX + 45, by + 12, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 15px -apple-system, sans-serif';
+    ctx.fillText(b.title, panelX + 65, by + 16);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '13px -apple-system, sans-serif';
+    ctx.fillText(b.desc, panelX + 65, by + 36);
+    by += 65;
+  });
+
+  // Threshold Warning Status Indicator
+  ctx.fillStyle = isAlarm ? 'rgba(239, 68, 68, 0.25)' : 'rgba(16, 185, 129, 0.15)';
+  ctx.strokeStyle = isAlarm ? '#ef4444' : '#10b981';
+  roundRect(ctx, panelX + 30, 680, 500, 180, 10, true, true);
+
+  ctx.fillStyle = isAlarm ? '#ef4444' : '#10b981';
+  ctx.font = 'bold 18px monospace';
+  ctx.fillText(isAlarm ? "⚠️ CRITICAL LEVEL THRESHOLD REACHED" : "✓ CHAMBER LIQUID LEVEL NORMAL", panelX + 50, 725);
+
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '14px monospace';
+  ctx.fillText(`Current Proximity: ${distCm} cm (Threshold: 45 cm)`, panelX + 50, 765);
+  ctx.fillText(`Liquid Height: ${Math.round(200 - distCm)} cm / 200 cm (Simulated)`, panelX + 50, 795);
+  ctx.fillText(isAlarm ? "Status: IMMEDIATE WARNING DISPATCH INITIATED" : "Status: Continuous Monitoring Steady", panelX + 50, 825);
+}
+
+// SENSOR 2 Sub-animation: Gas Detection (CH4 & H2S)
+function drawSensor2Gas(sp, t) {
+  ctx.fillStyle = '#080d1a';
+  ctx.fillRect(0, 0, 1920, 1080);
+
+  // Left: 3D gas sensor cylinder with metallic mesh & particle collision
+  const sx = 640;
+  const sy = 540;
+
+  // Gas particle dispersion
+  gasParticles.forEach(p => {
+    p.y += p.vy;
+    p.x += p.vx + Math.sin(t * 2 + p.y * 0.05) * 0.8;
+    if (p.y < 280) {
+      p.y = 860;
+      p.x = sx + (Math.random() - 0.5) * 360;
+    }
+
+    ctx.fillStyle = p.gasType === 'CH4' ? 'rgba(52, 211, 153, 0.6)' : 'rgba(245, 158, 11, 0.65)';
+    ctx.shadowColor = p.gasType === 'CH4' ? '#34d399' : '#f59e0b';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.shadowBlur = 0;
+
+  // Sensor 3D Body
+  ctx.fillStyle = '#1e293b';
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 4;
+  roundRect(ctx, sx - 110, sy - 140, 220, 260, 20, true, true);
+
+  // Cylindrical metallic perforated mesh
+  ctx.fillStyle = '#0f172a';
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 2;
+  roundRect(ctx, sx - 80, sy - 110, 160, 170, 12, true, true);
+
+  // Mesh grid
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+  for (let my = sy - 100; my < sy + 50; my += 16) {
+    ctx.beginPath();
+    ctx.moveTo(sx - 75, my);
+    ctx.lineTo(sx + 75, my);
+    ctx.stroke();
+  }
+
+  // Active Sensing Filament Glow
+  const glowIntensity = Math.min(1, sp * 1.5);
+  ctx.fillStyle = `rgba(239, 68, 68, ${0.4 + glowIntensity * 0.5})`;
+  ctx.shadowColor = '#ef4444';
+  ctx.shadowBlur = 25 * glowIntensity;
+  ctx.beginPath();
+  ctx.arc(sx, sy - 20, 30, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Right Side: Technical Data Panel
+  const panelX = 1240;
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+  ctx.strokeStyle = sp > 0.6 ? '#ef4444' : 'rgba(56, 189, 248, 0.4)';
+  ctx.lineWidth = 2;
+  roundRect(ctx, panelX, 160, 560, 760, 14, true, true);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 22px monospace';
+  ctx.fillText("SENSOR 2: TOXIC & HAZARDOUS GAS SENSING", panelX + 30, 215);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '14px -apple-system, sans-serif';
+  ctx.fillText("Electrochemical & Semiconductor Gas Detection Array", panelX + 30, 245);
+
+  // Gas Metrics
+  const ch4Ppm = Math.round(180 + sp * 750);
+  const h2sPpm = Math.round(8 + sp * 58);
+  const isGasCritical = sp > 0.65;
+
+  drawMetricBar(panelX + 30, 280, "METHANE (CH4) CONCENTRATION", ch4Ppm, "ppm", 1000, 600, '#34d399');
+  drawMetricBar(panelX + 30, 400, "HYDROGEN SULFIDE (H2S)", h2sPpm, "ppm", 80, 35, '#f59e0b');
+
+  // Key Bullet points strictly from prompt
+  const gasBullets = [
+    { label: "Methane (CH4)", info: "Highly flammable gas formed by anaerobic sludge digestion; explosion hazard" },
+    { label: "Hydrogen Sulfide (H2S)", info: "Extremely toxic gas with foul odor; lethal in confined chambers even at low ppm" },
+    { label: "Worker Safety Protection", info: "Eliminates dangerous manual chamber entry by detecting gas accumulation remotely" }
+  ];
+
+  let gy = 540;
+  gasBullets.forEach(gb => {
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 15px -apple-system, sans-serif';
+    ctx.fillText(`• ${gb.label}`, panelX + 30, gy);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '13px -apple-system, sans-serif';
+    ctx.fillText(gb.info, panelX + 45, gy + 22);
+    gy += 55;
+  });
+
+  // Warning Banner
+  ctx.fillStyle = isGasCritical ? 'rgba(239, 68, 68, 0.25)' : 'rgba(16, 185, 129, 0.15)';
+  ctx.strokeStyle = isGasCritical ? '#ef4444' : '#10b981';
+  roundRect(ctx, panelX + 30, 720, 500, 140, 10, true, true);
+
+  ctx.fillStyle = isGasCritical ? '#ef4444' : '#10b981';
+  ctx.font = 'bold 18px monospace';
+  ctx.fillText(isGasCritical ? "⚠️ TOXIC GAS CONCENTRATION EXCEEDED" : "✓ CHAMBER ATMOSPHERE STABLE", panelX + 50, 765);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = '13px monospace';
+  ctx.fillText(isGasCritical ? "Methane & H2S gas buildup detected. Chamber entry hazardous." : "Gas levels below permissible exposure limits.", panelX + 50, 805);
+}
+
+// SENSOR 3 Sub-animation: Environmental & Pressure
+function drawSensor3Environmental(sp, t) {
+  ctx.fillStyle = '#080d1a';
+  ctx.fillRect(0, 0, 1920, 1080);
+
+  // Left: Micro-electromechanical sensor chip representation
+  const cx = 640;
+  const cy = 540;
+
+  // PCB Circuit Pattern
+  drawCircuitTraces(cx, cy, t);
+
+  // Sensor IC Package
+  ctx.fillStyle = '#0f172a';
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 3;
+  roundRect(ctx, cx - 130, cy - 130, 260, 260, 16, true, true);
+
+  // Gold Pins
+  ctx.fillStyle = '#fbbf24';
+  for (let i = -100; i <= 100; i += 40) {
+    ctx.fillRect(cx + i - 8, cy - 146, 16, 16);
+    ctx.fillRect(cx + i - 8, cy + 130, 16, 16);
+    ctx.fillRect(cx - 146, cy + i - 8, 16, 16);
+    ctx.fillRect(cx + 130, cy + i - 8, 16, 16);
+  }
+
+  // Metallic Lid
+  ctx.fillStyle = '#1e293b';
+  ctx.strokeStyle = '#38bdf8';
+  roundRect(ctx, cx - 80, cy - 80, 160, 160, 8, true, true);
+
+  // Laser Etch Text
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 12px monospace';
+  ctx.fillText("ENV-CHAMBER", cx - 44, cy - 20);
+  ctx.fillText("P / T / RH", cx - 35, cy + 5);
+  ctx.fillStyle = '#00e5ff';
+  ctx.fillText("SMART-IOT", cx - 32, cy + 30);
+
+  // Right Side: Live Digital Gauges
+  const panelX = 1240;
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+  ctx.lineWidth = 2;
+  roundRect(ctx, panelX, 160, 560, 760, 14, true, true);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 22px monospace';
+  ctx.fillText("SENSOR 3: ENVIRONMENTAL & PRESSURE", panelX + 30, 215);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '14px -apple-system, sans-serif';
+  ctx.fillText("Chamber Atmosphere, Moisture & Pressure Telemetry", panelX + 30, 245);
+
+  // 3 Digital Gauges
+  const tempVal = (28.4 + Math.sin(t * 0.8) * 1.8).toFixed(1);
+  const humidVal = (82.1 + Math.cos(t * 0.6) * 4.2).toFixed(1);
+  const pressVal = (1014.2 + Math.sin(t * 1.2) * 2.5).toFixed(1);
+
+  drawDigitalCard(panelX + 30, 280, "CHAMBER TEMPERATURE", `${tempVal} °C`, "Normal Operating Range: 20–45 °C", '#38bdf8');
+  drawDigitalCard(panelX + 30, 420, "RELATIVE HUMIDITY", `${humidVal} %RH`, "Internal chamber dampness and evaporation", '#00e5ff');
+  drawDigitalCard(panelX + 30, 560, "ATMOSPHERIC & CHAMBER PRESSURE", `${pressVal} hPa`, "Monitors sealed air pressure and pneumatic buildup", '#a855f7');
+
+  // Summary Note
+  ctx.fillStyle = 'rgba(30, 41, 59, 0.6)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  roundRect(ctx, panelX + 30, 720, 500, 140, 8, true, true);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 15px monospace';
+  ctx.fillText("ENVIRONMENTAL CONDITION MONITORING", panelX + 50, 760);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '13px -apple-system, sans-serif';
+  ctx.fillText("Provides complete situational awareness of underground chamber", panelX + 50, 790);
+  ctx.fillText("micro-climates, validating sensor accuracy and seal integrity.", panelX + 50, 815);
+}
+
+// SCENE 6: The Electronic Control and Data Processing
+function drawScene6(p, t) {
+  ctx.save();
+  // 3D Exploded Technical View
+  // Microcontroller, Ultrasonic, Gas, Env, Wires, Wireless Module separate and reassemble
+  const explodeFactor = Math.sin(p * Math.PI) * 160;
+
+  drawHeroCallout("ELECTRONIC CONTROL AND DATA PROCESSING", 
+    "High-speed sensor data ingestion, edge evaluation, and alert synthesis", 960, 110, 1);
+
+  const cx = 960;
+  const cy = 540;
+
+  // Components in 3D exploded layout
+  const parts = [
+    { name: "ULTRASONIC LEVEL SENSOR", x: cx - 420 - explodeFactor, y: cy - 160, color: '#00e5ff', icon: "📡" },
+    { name: "GAS DETECTION SENSOR", x: cx + 420 + explodeFactor, y: cy - 160, color: '#f59e0b', icon: "🔬" },
+    { name: "ENV & PRESSURE SENSOR", x: cx + 420 + explodeFactor, y: cy + 160, color: '#a855f7', icon: "🌡️" },
+    { name: "WIRELESS TRANSCEIVER MODULE", x: cx - 420 - explodeFactor, y: cy + 160, color: '#38bdf8', icon: "📶" }
+  ];
+
+  // Connecting Bus Wires (glowing data streams flowing into center MCU)
+  parts.forEach(pt => {
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(pt.x, pt.y);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+
+    // Data packet animations flowing along wires
+    const packetT = (t * 2 + pt.x * 0.01) % 1;
+    const px = pt.x + (cx - pt.x) * packetT;
+    const py = pt.y + (cy - pt.y) * packetT;
+    ctx.fillStyle = pt.color;
+    ctx.shadowColor = pt.color;
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(px, py, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Component Box
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.strokeStyle = pt.color;
+    ctx.lineWidth = 2;
+    roundRect(ctx, pt.x - 130, pt.y - 45, 260, 90, 10, true, true);
+
+    ctx.fillStyle = pt.color;
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText(pt.icon, pt.x - 110, pt.y + 10);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText(pt.name, pt.x - 70, pt.y - 5);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px sans-serif';
+    ctx.fillText("Calibrated Sensor Line", pt.x - 70, pt.y + 18);
+  });
+
+  // Center Microcontroller Control Unit
+  ctx.fillStyle = '#0f172a';
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 4;
+  ctx.shadowColor = '#00e5ff';
+  ctx.shadowBlur = 20;
+  roundRect(ctx, cx - 180, cy - 140, 360, 280, 16, true, true);
+  ctx.shadowBlur = 0;
+
+  // MCU Internal Core
+  ctx.fillStyle = '#1e293b';
+  roundRect(ctx, cx - 120, cy - 80, 240, 160, 8, true, false);
+
+  ctx.fillStyle = '#00e5ff';
+  ctx.font = 'bold 18px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText("MICROCONTROLLER", cx, cy - 35);
+  ctx.font = 'bold 14px monospace';
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillText("DATA PROCESSING UNIT", cx, cy - 10);
+
+  // Status HUD inside MCU
+  ctx.fillStyle = '#10b981';
+  ctx.font = '12px monospace';
+  ctx.fillText("● SAMPLING RATE: 100 Hz", cx, cy + 25);
+  ctx.fillText("● ALGORITHM: THRESHOLD LOGIC", cx, cy + 45);
+  ctx.fillStyle = p > 0.5 ? '#ef4444' : '#38bdf8';
+  ctx.fillText(p > 0.5 ? "STATUS: ABNORMAL CONDITION" : "STATUS: NORMAL PROCESSING", cx, cy + 65);
+  ctx.textAlign = 'left';
+
+  // Bottom Status Monitor Bar
+  const stats = [
+    { label: "LIQUID LEVEL", val: "CRITICAL 94%", col: "#ef4444" },
+    { label: "GAS ACCUMULATION", val: "CH4/H2S HIGH", col: "#f59e0b" },
+    { label: "TEMPERATURE", val: "29.4 °C", col: "#38bdf8" },
+    { label: "PRESSURE", val: "1014 hPa", col: "#10b981" },
+    { label: "ALERT TRIGGER", val: "TRANSMIT", col: "#00e5ff" }
+  ];
+
+  let bx = 160;
+  stats.forEach(st => {
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.strokeStyle = st.col;
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, bx, 860, 300, 70, 8, true, true);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px monospace';
+    ctx.fillText(st.label, bx + 16, 888);
+    ctx.fillStyle = st.col;
+    ctx.font = 'bold 16px monospace';
+    ctx.fillText(st.val, bx + 16, 914);
+    bx += 325;
+  });
+
+  ctx.restore();
+}
+
+// SCENE 7: Wireless Communication to Municipal Office
+function drawScene7(p, t) {
+  ctx.save();
+  // Subterranean manhole at bottom-left radiating RF waves up through ground to municipal tower & control room
+  const startX = 380;
+  const startY = 820;
+  const towerX = 1050;
+  const towerY = 320;
+  const officeX = 1520;
+  const officeY = 460;
+
+  // Underground Chamber Representation (Bottom Left)
+  drawUndergroundManholeCutaway(startX, startY, 260, 320, 0.85, false);
+
+  // Wireless Electromagnetic Rings emerging upward
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#00e5ff';
+  ctx.shadowBlur = 15;
+  for (let r = 20; r < 360; r += 45) {
+    const waveRadius = (r + t * 90) % 360;
+    ctx.beginPath();
+    ctx.arc(startX, startY - 140, waveRadius, Math.PI * 1.1, Math.PI * 1.9, false);
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+
+  // Arc path from Ground to Municipal Tower
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([15, 10]);
+  ctx.beginPath();
+  ctx.moveTo(startX, startY - 200);
+  ctx.quadraticCurveTo(680, 220, towerX, towerY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Glowing Telemetry Data Packets traveling along the arc
+  const arcT = (t * 1.5) % 1;
+  const qx = (1 - arcT) * (1 - arcT) * startX + 2 * (1 - arcT) * arcT * 680 + arcT * arcT * towerX;
+  const qy = (1 - arcT) * (1 - arcT) * (startY - 200) + 2 * (1 - arcT) * arcT * 220 + arcT * arcT * towerY;
+
+  ctx.fillStyle = '#00e5ff';
+  ctx.shadowColor = '#00e5ff';
+  ctx.shadowBlur = 20;
+  ctx.beginPath();
+  ctx.arc(qx, qy, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Municipal Communication Tower
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(towerX, towerY + 360);
+  ctx.lineTo(towerX, towerY);
+  ctx.lineTo(towerX - 35, towerY + 120);
+  ctx.moveTo(towerX, towerY);
+  ctx.lineTo(towerX + 35, towerY + 120);
+  ctx.stroke();
+
+  // Control Room Console (Right side)
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 2;
+  roundRect(ctx, 1260, 200, 580, 700, 14, true, true);
+
+  // Control Room GIS Map Screen
+  ctx.fillStyle = '#020617';
+  roundRect(ctx, 1290, 240, 520, 360, 10, true, false);
+
+  // Mini Map Roads
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(1310, 340); ctx.lineTo(1780, 340);
+  ctx.moveTo(1310, 460); ctx.lineTo(1780, 460);
+  ctx.moveTo(1440, 250); ctx.lineTo(1440, 580);
+  ctx.moveTo(1640, 250); ctx.lineTo(1640, 580);
+  ctx.stroke();
+
+  // Multiple Manholes on Map
+  const nodes = [
+    { id: "M-01", x: 1370, y: 340, status: "safe" },
+    { id: "M-02", x: 1540, y: 340, status: "safe" },
+    { id: "M-07", x: 1440, y: 460, status: "critical" }, // Targeted manhole
+    { id: "M-12", x: 1640, y: 460, status: "safe" },
+    { id: "M-15", x: 1720, y: 340, status: "safe" }
+  ];
+
+  nodes.forEach(nd => {
+    const isCrit = nd.status === 'critical';
+    ctx.fillStyle = isCrit ? '#ef4444' : '#10b981';
+    ctx.shadowColor = isCrit ? '#ef4444' : '#10b981';
+    ctx.shadowBlur = isCrit ? 20 : 6;
+    ctx.beginPath();
+    ctx.arc(nd.x, nd.y, isCrit ? 12 : 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText(nd.id, nd.x + 14, nd.y + 4);
+
+    if (isCrit) {
+      // Pulse ring on Map
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(nd.x, nd.y, 14 + (t * 30) % 30, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  });
+
+  // Telemetry Log Box in Console
+  ctx.fillStyle = '#0f172a';
+  roundRect(ctx, 1290, 620, 520, 240, 8, true, false);
+
+  ctx.fillStyle = '#ef4444';
+  ctx.font = 'bold 16px monospace';
+  ctx.fillText("MUNICIPAL ALERT DETECTED: NODE M-07", 1315, 660);
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '13px monospace';
+  ctx.fillText("• Geographic Ward: Gudivada Zone 2 (Sachivalayam-6)", 1315, 695);
+  ctx.fillText("• Liquid Level: CRITICAL (94% Chamber Capacity)", 1315, 725);
+  ctx.fillText("• Hazardous Gas: CH4 ELEVATED (910 ppm) &bull; H2S DETECTED", 1315, 755);
+  ctx.fillStyle = '#00e5ff';
+  ctx.fillText("• Action: Automated Dispatch Ready &bull; Notification Sent", 1315, 790);
+
+  drawHeroCallout("WIRELESS COMMUNICATION TO THE MUNICIPAL OFFICE", 
+    "Transmitting real-time chamber telemetry to municipal command center", 960, 110, 1);
+
+  ctx.restore();
+}
+
+// SCENE 8: Automated Alert and Municipal Response
+function drawScene8(p, t) {
+  ctx.save();
+  drawHeroCallout("AUTOMATED ALERT AND TARGETED MUNICIPAL RESPONSE", 
+    "Proactive mobilization prevents street overflow and protects worker safety", 960, 110, 1);
+
+  // Left: Mobile Phone Notification Screen (Realistic Smartphone Simulation)
+  const phoneX = 420;
+  const phoneY = 560;
+
+  // Phone Chassis
+  ctx.fillStyle = '#0f172a';
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 6;
+  roundRect(ctx, phoneX - 180, phoneY - 320, 360, 640, 36, true, true);
+
+  // Phone Screen
+  ctx.fillStyle = '#020617';
+  roundRect(ctx, phoneX - 165, phoneY - 305, 330, 610, 24, true, false);
+
+  // Time & Status bar
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillText("09:41", phoneX - 140, phoneY - 275);
+  ctx.fillText("5G 📶 100%", phoneX + 70, phoneY - 275);
+
+  // Alert Card
+  ctx.fillStyle = 'rgba(239, 68, 68, 0.95)';
+  ctx.strokeStyle = '#fca5a5';
+  ctx.lineWidth = 2;
+  roundRect(ctx, phoneX - 150, phoneY - 240, 300, 260, 14, true, true);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText("🚨 SMART MANHOLE ALERT", phoneX - 130, phoneY - 205);
+
+  ctx.font = '13px monospace';
+  ctx.fillText("Location: Manhole M-07", phoneX - 130, phoneY - 170);
+  ctx.fillText("Status: CRITICAL", phoneX - 130, phoneY - 145);
+  ctx.fillText("Level: Above Configured Threshold", phoneX - 130, phoneY - 120);
+  ctx.fillText("Gas Status: Abnormal (CH4 / H2S)", phoneX - 130, phoneY - 95);
+  ctx.fillText("Action: Immediate Inspection", phoneX - 130, phoneY - 70);
+
+  ctx.fillStyle = '#fef08a';
+  ctx.font = 'italic 10px monospace';
+  ctx.fillText("*Illustrative simulated alert readings", phoneX - 130, phoneY - 40);
+
+  // Action Button on Phone
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, phoneX - 130, phoneY - 20, 260, 36, 6, true, false);
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText("ACKNOWLEDGE & DISPATCH CREW", phoneX, phoneY + 3);
+  ctx.textAlign = 'left';
+
+  // Right: Municipal Response Vehicle & Desilting Operation (Safe Non-Entry Procedure)
+  const rightX = 1200;
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 2;
+  roundRect(ctx, 800, 240, 960, 640, 14, true, true);
+
+  // Maintenance Van
+  drawMunicipalVehicle(1100, 560);
+
+  // Manhole being serviced safely with vacuum/suction arm
+  const chamberLevel = Math.max(0.2, 0.9 - p * 0.7); // Sewage level decreasing as crew clears it!
+  drawUndergroundManholeCutaway(1520, 680, 260, 340, chamberLevel, false);
+
+  // Suction Hose from Truck to Manhole
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 14;
+  ctx.beginPath();
+  ctx.moveTo(1220, 520);
+  ctx.bezierCurveTo(1340, 480, 1420, 520, 1520, 620);
+  ctx.stroke();
+
+  // Operation Narrative
+  ctx.fillStyle = '#10b981';
+  ctx.font = 'bold 20px monospace';
+  ctx.fillText("TARGETED PREVENTIVE RESOLUTION", 840, 290);
+
+  const steps = [
+    "1. Alert received directly on sanitation supervisor terminal",
+    "2. Maintenance vehicle dispatched immediately to Manhole M-07",
+    "3. High-velocity suction and desilting clears pipeline blockage",
+    "4. Wastewater level recedes safely without street overflow",
+    "5. Zero hazardous manual entry required — complete worker safety"
+  ];
+
+  let sy = 335;
+  steps.forEach(st => {
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '14px -apple-system, sans-serif';
+    ctx.fillText(st, 840, sy);
+    sy += 32;
+  });
+
+  ctx.restore();
+}
+
+// SCENE 9: Before and After Comparison (Split Screen)
+function drawScene9(p, t) {
+  ctx.save();
+  drawHeroCallout("TRANSFORMATION OF URBAN DRAINAGE MANAGEMENT", 
+    "Comparing conventional manual inspection with intelligent IoT monitoring", 960, 110, 1);
+
+  const midX = 960;
+
+  // LEFT SIDE: Traditional Monitoring (Red / Grey tone)
+  ctx.fillStyle = 'rgba(24, 15, 20, 0.92)';
+  ctx.strokeStyle = '#ef4444';
+  ctx.lineWidth = 2;
+  roundRect(ctx, 120, 170, 800, 750, 12, true, true);
+
+  ctx.fillStyle = '#ef4444';
+  ctx.font = 'bold 24px monospace';
+  ctx.fillText("TRADITIONAL DRAINAGE MANAGEMENT", 160, 230);
+  ctx.fillStyle = '#fca5a5';
+  ctx.font = '14px sans-serif';
+  ctx.fillText("Reactive &bull; Manual-Intensive &bull; Delayed Intervention", 160, 260);
+
+  const tradPoints = [
+    { title: "Manual Inspection Rounds", desc: "Workers spend 3–5 hours daily prying open heavy cast-iron covers manually" },
+    { title: "Delayed Hazard Identification", desc: "Blockages and rising levels are recognized only after sewage overflows onto roads" },
+    { title: "Public Complaints Driven", desc: "Municipal response initiated reactively after traffic disruption and citizen distress" },
+    { title: "Severe Worker Safety Hazard", desc: "Sanitation workers exposed to invisible, lethal toxic gases (CH4 & H2S)" },
+    { title: "No Real-Time Visibility", desc: "Zero telemetry or predictive data into underground pipeline conditions" }
+  ];
+
+  let ty = 320;
+  tradPoints.forEach(pt => {
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 18px monospace';
+    ctx.fillText("✕", 160, ty);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px -apple-system, sans-serif';
+    ctx.fillText(pt.title, 195, ty);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '13px -apple-system, sans-serif';
+    ctx.fillText(pt.desc, 195, ty + 22);
+    ty += 78;
+  });
+
+  // RIGHT SIDE: Smart IoT Monitoring (Green / Cyan tone)
+  ctx.fillStyle = 'rgba(10, 25, 30, 0.92)';
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 2;
+  roundRect(ctx, 1040, 170, 800, 750, 12, true, true);
+
+  ctx.fillStyle = '#00e5ff';
+  ctx.font = 'bold 24px monospace';
+  ctx.fillText("IoT-BASED SMART MANHOLE SYSTEM", 1080, 230);
+  ctx.fillStyle = '#6ee7b7';
+  ctx.font = '14px sans-serif';
+  ctx.fillText("Proactive &bull; 24/7 Automated &bull; Preventive Action", 1080, 260);
+
+  const smartPoints = [
+    { title: "Continuous Sensor Monitoring", desc: "Acoustic ultrasonic level and gas sensors track conditions 24 hours a day" },
+    { title: "Early Warning Before Overflow", desc: "Detects blockage and liquid level rises before sewage spills onto streets" },
+    { title: "Automated Wireless Alerting", desc: "Instant cellular/RF notification dispatched directly to municipal command portals" },
+    { title: "Sanitation Worker Protection", desc: "Eliminates hazardous chamber entry through remote toxic gas monitoring" },
+    { title: "Data-Driven City Infrastructure", desc: "Enables precise municipal resource allocation and predictive desilting schedules" }
+  ];
+
+  let sy = 320;
+  smartPoints.forEach(pt => {
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 18px monospace';
+    ctx.fillText("✓", 1080, sy);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px -apple-system, sans-serif';
+    ctx.fillText(pt.title, 1115, sy);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '13px -apple-system, sans-serif';
+    ctx.fillText(pt.desc, 1115, sy + 22);
+    sy += 78;
+  });
+
+  ctx.restore();
+}
+
+// SCENE 10: Final Impact and Ending
+function drawScene10(p, t) {
+  ctx.save();
+  // Cinematic city panorama with connected glowing underground smart mesh
+  // Sky
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, 500);
+  skyGrad.addColorStop(0, '#020617');
+  skyGrad.addColorStop(1, '#0f172a');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, 1920, 500);
+
+  // Modern Clean City Silhouette
+  ctx.fillStyle = '#1e293b';
+  for (let b = 0; b < 24; b++) {
+    const bh = 180 + Math.sin(b * 1.5) * 110;
+    ctx.fillRect(b * 85, 500 - bh, 75, bh);
+  }
+
+  // Connected Subterranean Smart Grid Nodes
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.4)';
+  ctx.lineWidth = 2;
+  const gridNodes = [];
+  for (let gx = 180; gx <= 1740; gx += 260) {
+    gridNodes.push({ x: gx, y: 720 + Math.sin(gx * 0.02) * 40 });
+  }
+
+  ctx.beginPath();
+  gridNodes.forEach((gn, i) => {
+    if (i === 0) ctx.moveTo(gn.x, gn.y);
+    else ctx.lineTo(gn.x, gn.y);
+  });
+  ctx.stroke();
+
+  // Draw glowing cyan manhole stations
+  gridNodes.forEach(gn => {
+    ctx.fillStyle = '#00e5ff';
+    ctx.shadowColor = '#00e5ff';
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(gn.x, gn.y, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Upward beacon of light
+    const bGrad = ctx.createLinearGradient(gn.x, gn.y, gn.x, gn.y - 140);
+    bGrad.addColorStop(0, 'rgba(0, 229, 255, 0.4)');
+    bGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = bGrad;
+    ctx.fillRect(gn.x - 2, gn.y - 140, 4, 140);
+  });
+
+  // Final Statement Banner
+  ctx.fillStyle = 'rgba(7, 10, 19, 0.94)';
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 3;
+  ctx.shadowColor = '#00e5ff';
+  ctx.shadowBlur = 25;
+  roundRect(ctx, 280, 180, 1360, 100, 14, true, true);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 32px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText("SMARTER DRAINAGE. SAFER COMMUNITIES. CLEANER CITIES.", 960, 242);
+
+  // Academic End Card strictly following prompt instructions
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+  ctx.lineWidth = 2;
+  roundRect(ctx, 360, 320, 1200, 520, 14, true, true);
+
+  ctx.fillStyle = '#00e5ff';
+  ctx.font = 'bold 26px monospace';
+  ctx.fillText("SMART MANHOLE DETECTION SYSTEM", 960, 375);
+
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = 'bold 16px monospace';
+  ctx.fillText("Community Service Project | 2026–2027", 960, 410);
+
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = '18px -apple-system, sans-serif';
+  ctx.fillText("Department of Electronics and Communication Engineering", 960, 455);
+  ctx.font = 'bold 20px -apple-system, sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText("SESHADRI RAO GUDLAVALLERU ENGINEERING COLLEGE", 960, 490);
+  ctx.font = '15px -apple-system, sans-serif';
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText("Seshadri Rao Knowledge Village, Gudivada – 521356, Andhra Pradesh", 960, 520);
+
+  // Student Team & Guide Details
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(420, 560);
+  ctx.lineTo(1500, 560);
+  ctx.stroke();
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 14px monospace';
+  ctx.fillText("PROJECT DEVELOPMENT TEAM (III B. Tech ECE):", 960, 595);
+
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = '14px monospace';
+  ctx.fillText("B. Susmitha (24481A0427)  •  Ch. Bharath (25485A0402)  •  B. Sravani (24481A0425)", 960, 630);
+  ctx.fillText("K. Naga Surendar (23481A0494)  •  A. Prabhavathi (24481A0407)", 960, 660);
+
+  ctx.fillStyle = '#a855f7';
+  ctx.font = 'bold 15px -apple-system, sans-serif';
+  ctx.fillText("Project Supervisor: Mr. T.S.R. Krishna Prasad, Professor (ECE)", 960, 715);
+  ctx.fillStyle = '#64748b';
+  ctx.font = '13px -apple-system, sans-serif';
+  ctx.fillText("Field Location: Gudivada Municipality, Krishna District, AP (16.4°N, 80.9°E)", 960, 745);
+
+  ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+// ---------------- Helper Drawing Functions ----------------
+
+function drawHeroCallout(heading, sub, x, y, alpha) {
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.fillStyle = `rgba(0, 229, 255, ${alpha})`;
+  ctx.font = 'bold 28px monospace';
+  ctx.shadowColor = '#00e5ff';
+  ctx.shadowBlur = 12;
+  ctx.fillText(heading, x, y);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = `rgba(203, 213, 225, ${alpha * 0.9})`;
+  ctx.font = '15px -apple-system, sans-serif';
+  ctx.fillText(sub, x, y + 26);
+  ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+function drawUndergroundCutawayBase() {
+  // Ground cross-section
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 440, 1920, 640);
+
+  // Road surface
+  ctx.fillStyle = '#1f2937';
+  ctx.fillRect(0, 420, 1920, 20);
+
+  // Subterranean soil layers
+  ctx.strokeStyle = '#374151';
+  ctx.lineWidth = 1;
+  for (let y = 460; y < 1080; y += 45) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(1920, y);
+    ctx.stroke();
+  }
+}
+
+function drawUndergroundManholeCutaway(x, y, w, h, liquidRatio, showBlockage, progress) {
+  ctx.save();
+  // Chamber Walls (Reinforced Concrete)
+  ctx.fillStyle = '#1e293b';
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 4;
+  roundRect(ctx, x - w / 2, y - h / 2, w, h, 8, true, true);
+
+  // Connecting Sewer Pipes (Left Inflow, Right Outflow)
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(x - w / 2 - 200, y + h / 2 - 110, 200, 90);
+  ctx.strokeRect(x - w / 2 - 200, y + h / 2 - 110, 200, 90);
+
+  ctx.fillRect(x + w / 2, y + h / 2 - 110, 200, 90);
+  ctx.strokeRect(x + w / 2, y + h / 2 - 110, 200, 90);
+
+  // Cast Iron Top Cover / Ring
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(x - w / 2 + 20, y - h / 2 - 14, w - 40, 14);
+
+  // Wastewater Inside Chamber
+  const maxWaterH = h - 40;
+  const currentWaterH = maxWaterH * Math.min(1.05, liquidRatio);
+  const waterTopY = (y + h / 2 - 20) - currentWaterH;
+
+  const wGrad = ctx.createLinearGradient(0, waterTopY, 0, y + h / 2);
+  wGrad.addColorStop(0, '#594028');
+  wGrad.addColorStop(1, '#2c1e11');
+  ctx.fillStyle = wGrad;
+  ctx.fillRect(x - w / 2 + 10, waterTopY, w - 20, currentWaterH);
+
+  // Sludge Inflow in Left Pipe
+  ctx.fillStyle = '#594028';
+  ctx.fillRect(x - w / 2 - 200, y + h / 2 - 80, 200, 60);
+
+  // Pipe Blockage Debris Accumulation (Right Pipe)
+  if (showBlockage) {
+    const blockageSize = Math.min(80, (progress || 0.5) * 85);
+    ctx.fillStyle = '#1c1917';
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x + w / 2 + 40, y + h / 2 - 50, blockageSize, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Silt & Plastic Debris label
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText("BLOCKAGE", x + w / 2 + 10, y + h / 2 - 95);
+  }
+
+  ctx.restore();
+}
+
+function drawSmartManholeChamber(x, y, w, h, liquidRatio, showSensors) {
+  drawUndergroundManholeCutaway(x, y, w, h, liquidRatio, false);
+
+  if (showSensors) {
+    ctx.save();
+    // Mounted IoT Electronics Housing near roof
+    ctx.fillStyle = '#0284c7';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2;
+    roundRect(ctx, x - 70, y - h / 2 + 20, 140, 50, 6, true, true);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText("IoT UNIT", x - 26, y - h / 2 + 50);
+
+    // Ultrasonic Sensor pointing down
+    ctx.fillStyle = '#10b981';
+    ctx.fillRect(x - 30, y - h / 2 + 70, 60, 20);
+
+    // Glowing status LED
+    ctx.fillStyle = '#00e5ff';
+    ctx.shadowColor = '#00e5ff';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(x + 45, y - h / 2 + 35, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Acoustic pulse cone
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x - 20, y - h / 2 + 90);
+    ctx.lineTo(x - 90, y + 100);
+    ctx.moveTo(x + 20, y - h / 2 + 90);
+    ctx.lineTo(x + 90, y + 100);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawMovingVehicles(t) {
+  const vx = (t * 120) % 2200 - 200;
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(vx, 520, 80, 30);
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(vx + 15, 505, 45, 18);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(vx + 75, 532, 6, 8); // Headlight
+}
+
+function drawPedestriansEvading(x, y) {
+  ctx.save();
+  ctx.fillStyle = '#e2e8f0';
+  ctx.beginPath();
+  ctx.arc(x, y - 24, 7, 0, Math.PI * 2); // Head
+  ctx.fill();
+  ctx.strokeStyle = '#e2e8f0';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x, y - 17);
+  ctx.lineTo(x, y + 5);
+  ctx.lineTo(x - 8, y + 25);
+  ctx.moveTo(x, y + 5);
+  ctx.lineTo(x + 8, y + 25);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawMunicipalVehicle(x, y) {
+  ctx.save();
+  // Service Truck
+  ctx.fillStyle = '#f59e0b';
+  roundRect(ctx, x - 180, y - 90, 260, 100, 10, true, false);
+
+  // Cab
+  ctx.fillStyle = '#d97706';
+  roundRect(ctx, x + 80, y - 70, 90, 80, 8, true, false);
+
+  // Wheels
+  ctx.fillStyle = '#0f172a';
+  ctx.beginPath();
+  ctx.arc(x - 110, y + 15, 26, 0, Math.PI * 2);
+  ctx.arc(x + 110, y + 15, 26, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Lettering
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'bold 12px monospace';
+  ctx.fillText("GUDIVADA MUNICIPALITY", x - 150, y - 40);
+  ctx.fillText("RAPID DRAINAGE CREW", x - 150, y - 20);
+  ctx.restore();
+}
+
+function drawRain(t) {
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.lineWidth = 1.2;
+  particles.forEach(p => {
+    p.y += p.vy * 4;
+    p.x += p.vx;
+    if (p.y > 680) { p.y = 480; p.x = Math.random() * 1920; }
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x - 2, p.y + 12);
+    ctx.stroke();
+  });
+}
+
+function drawMicrobeSimulation(t) {
+  ctx.fillStyle = '#ef4444';
+  for (let i = 0; i < 18; i++) {
+    const mx = Math.sin(t * 1.5 + i) * 140;
+    const my = Math.cos(t * 1.2 + i * 0.8) * 80;
+    ctx.beginPath();
+    ctx.arc(mx, my, 8 + (i % 4) * 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawPollutionFlow(t) {
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  for (let x = -200; x <= 200; x += 15) {
+    const y = Math.sin((x + t * 60) * 0.03) * 35;
+    if (x === -200) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+function drawWaterloggedTraffic(t) {
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(-120, -20, 160, 50);
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(-220, 20, 440, 20); // Flooded road water
+}
+
+function drawToxicGasClouds(t) {
+  ctx.fillStyle = 'rgba(168, 85, 247, 0.4)';
+  for (let i = 0; i < 5; i++) {
+    const gx = Math.sin(t * 1.5 + i) * 60;
+    const gy = -40 + Math.cos(t * 1.2 + i) * 40;
+    ctx.beginPath();
+    ctx.arc(gx, gy, 45, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawCircuitTraces(cx, cy, t) {
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.25)';
+  ctx.lineWidth = 2;
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(a) * 280, cy + Math.sin(a) * 280);
+    ctx.stroke();
+  }
+}
+
+function drawMetricBar(x, y, label, val, unit, maxVal, warnVal, color) {
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = 'bold 13px monospace';
+  ctx.fillText(label, x, y);
+
+  const pct = Math.min(1, val / maxVal);
+  ctx.fillStyle = '#0f172a';
+  roundRect(ctx, x, y + 10, 500, 24, 6, true, false);
+
+  ctx.fillStyle = val >= warnVal ? '#ef4444' : color;
+  roundRect(ctx, x, y + 10, 500 * pct, 24, 6, true, false);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 14px monospace';
+  ctx.fillText(`${val} ${unit}`, x + 510, y + 27);
+}
+
+function drawDigitalCard(x, y, label, val, sub, color) {
+  ctx.fillStyle = 'rgba(2, 6, 23, 0.75)';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, x, y, 500, 110, 8, true, true);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 12px monospace';
+  ctx.fillText(label, x + 20, y + 28);
+
+  ctx.fillStyle = color;
+  ctx.font = 'bold 28px monospace';
+  ctx.fillText(val, x + 20, y + 68);
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '11px -apple-system, sans-serif';
+  ctx.fillText(sub, x + 20, y + 92);
+}
+
+function drawCinematicOverlays(activeScene, t) {
+  // Vignette
+  const vigGrad = ctx.createRadialGradient(960, 540, 500, 960, 540, 1150);
+  vigGrad.addColorStop(0, 'transparent');
+  vigGrad.addColorStop(1, 'rgba(0, 0, 0, 0.7)');
+  ctx.fillStyle = vigGrad;
+  ctx.fillRect(0, 0, 1920, 1080);
+
+  // Technical crosshairs in 4 corners
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+  ctx.lineWidth = 1.5;
+  const margin = 40;
+  const len = 20;
+
+  // TL
+  ctx.beginPath();
+  ctx.moveTo(margin, margin + len); ctx.lineTo(margin, margin); ctx.lineTo(margin + len, margin);
+  // TR
+  ctx.moveTo(1920 - margin - len, margin); ctx.lineTo(1920 - margin, margin); ctx.lineTo(1920 - margin, margin + len);
+  // BL
+  ctx.moveTo(margin, 1080 - margin - len); ctx.lineTo(margin, 1080 - margin); ctx.lineTo(margin + len, 1080 - margin);
+  // BR
+  ctx.moveTo(1920 - margin - len, 1080 - margin); ctx.lineTo(1920 - margin, 1080 - margin); ctx.lineTo(1920 - margin, 1080 - margin - len);
+  ctx.stroke();
+}
+
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) ctx.fill();
+  if (stroke) ctx.stroke();
+}
+
+function updateHUD(activeScene, time) {
+  const pad = (n) => String(Math.floor(n)).padStart(2, '0');
+  const mm = pad(time / 60);
+  const ss = pad(time % 60);
+  document.getElementById('timeDisplay').innerText = `${mm}:${ss} / 04:00`;
+  document.getElementById('timeProgress').style.width = `${(time / TOTAL_DURATION) * 100}%`;
+  document.getElementById('sceneIndicator').innerText = `SCENE ${activeScene.id} of 10`;
+
+  document.getElementById('captionTitle').innerText = `${activeScene.title} &bull; ${activeScene.heading}`;
+  document.getElementById('captionText').innerText = `"${activeScene.narration}"`;
+
+  // Highlight card in scene grid
+  document.querySelectorAll('.scene-card').forEach((card, idx) => {
+    if (idx + 1 === activeScene.id) card.classList.add('active');
+    else card.classList.remove('active');
+  });
+}
+
+// Main Animation Loop
+function animate(now) {
+  const dt = (now - lastTimestamp) / 1000;
+  lastTimestamp = now;
+
+  if (isPlaying) {
+    currentTime += dt;
+    if (currentTime >= TOTAL_DURATION) {
+      currentTime = TOTAL_DURATION;
+      isPlaying = false;
+      document.getElementById('playText').innerText = "Replay Presentation";
+      document.getElementById('playIcon').innerHTML = "&#8634;";
+    }
+  }
+
+  renderScene(currentTime);
+  animFrameId = requestAnimationFrame(animate);
+}
+
+// Populate Scene Jump Grid
+function buildSceneGrid() {
+  const grid = document.getElementById('sceneGrid');
+  grid.innerHTML = '';
+  SCENES.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'scene-card';
+    const sMin = Math.floor(s.start / 60);
+    const sSec = String(s.start % 60).padStart(2, '0');
+    const eMin = Math.floor(s.end / 60);
+    const eSec = String(s.end % 60).padStart(2, '0');
+    card.innerHTML = `
+      <div class="sc-time">${sMin}:${sSec}–${eMin}:${eSec}</div>
+      <div class="sc-title">${s.id}. ${s.title.split(':')[1] || s.title}</div>
+      <div class="sc-desc">${s.heading}</div>
+    `;
+    card.addEventListener('click', () => {
+      initAudio();
+      jumpToScene(s.id);
+    });
+    grid.appendChild(card);
+  });
+}
+
+function jumpToScene(sceneId) {
+  const sc = SCENES.find(s => s.id === sceneId);
+  if (sc) {
+    currentTime = sc.start;
+    currentSpokenScene = -1; // force re-narration
+    if (isPlaying) speakNarration(sc.narration, sc.id);
+    renderScene(currentTime);
+  }
+}
+
+// User Controls Listeners
+document.getElementById('btnPlayPause').addEventListener('click', () => {
+  initAudio();
+  if (currentTime >= TOTAL_DURATION) currentTime = 0;
+  isPlaying = !isPlaying;
+  document.getElementById('playText').innerText = isPlaying ? "Pause" : "Play Presentation";
+  document.getElementById('playIcon').innerHTML = isPlaying ? "&#10074;&#10074;" : "&#9658;";
+  if (isPlaying) {
+    const active = SCENES.find(s => currentTime >= s.start && currentTime < s.end);
+    if (active) speakNarration(active.narration, active.id);
+  } else {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
+});
+
+document.getElementById('btnRestart').addEventListener('click', () => {
+  initAudio();
+  currentTime = 0;
+  currentSpokenScene = -1;
+  isPlaying = true;
+  document.getElementById('playText').innerText = "Pause";
+  document.getElementById('playIcon').innerHTML = "&#10074;&#10074;";
+  speakNarration(SCENES[0].narration, 1);
+});
+
+document.getElementById('btnVoiceToggle').addEventListener('click', (e) => {
+  voiceoverEnabled = !voiceoverEnabled;
+  e.target.innerText = voiceoverEnabled ? "🔊 Voiceover: ON" : "🔇 Voiceover: OFF";
+  if (!voiceoverEnabled && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+});
+
+document.getElementById('btnSfxToggle').addEventListener('click', (e) => {
+  initAudio();
+  sfxEnabled = !sfxEnabled;
+  e.target.innerText = sfxEnabled ? "🎵 Audio SFX: ON" : "🔇 Audio SFX: OFF";
+});
+
+document.getElementById('btnFullscreen').addEventListener('click', () => {
+  const container = document.getElementById('cinemaContainer');
+  if (!document.fullscreenElement) {
+    container.requestFullscreen().catch(err => alert(err.message));
+  } else {
+    document.exitFullscreen();
+  }
+});
+
+// Timeline Scrubbing
+document.getElementById('timelineBar').addEventListener('click', (e) => {
+  initAudio();
+  const rect = e.currentTarget.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+  currentTime = ratio * TOTAL_DURATION;
+  currentSpokenScene = -1;
+  if (isPlaying) {
+    const active = SCENES.find(s => currentTime >= s.start && currentTime < s.end);
+    if (active) speakNarration(active.narration, active.id);
+  }
+  renderScene(currentTime);
+});
+
+// Keyboard Shortcuts (Space to play/pause, Left/Right arrow to scrub, F for fullscreen)
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    document.getElementById('btnPlayPause').click();
+  } else if (e.code === 'ArrowRight') {
+    currentTime = Math.min(TOTAL_DURATION, currentTime + 5);
+    renderScene(currentTime);
+  } else if (e.code === 'ArrowLeft') {
+    currentTime = Math.max(0, currentTime - 5);
+    renderScene(currentTime);
+  } else if (e.code === 'KeyF') {
+    document.getElementById('btnFullscreen').click();
+  }
+});
+
+// Init
+buildSceneGrid();
+renderScene(0);
+requestAnimationFrame(animate);
+
+</script>
+</body>
+</html>
